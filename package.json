@@ -1,0 +1,20 @@
+{
+  "name": "optofluid",
+  "version": "0.0.1",
+  "description": "Optofluid backend system",
+  "main": "index.js",
+  "dependencies": {
+    "hapi": "^9.1.0",
+    "pg": "^4.4.1",
+    "node-pg-migrate": "https://github.com/indrek-rajamets/node-pg-migrate.git"
+  },
+  "devDependencies": {
+    "lab": "^5.16.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pg-migrate": "export $(cat .env | xargs) && ./node_modules/.bin/pg-migrate"
+  },
+  "author": "Kristjan Pihus",
+  "license": "ISC"
+}
