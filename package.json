@@ -4,9 +4,14 @@
   "description": "Optofluid backend system",
   "main": "index.js",
   "dependencies": {
+    "dotenv": "^1.2.0",
+    "good": "^6.4.0",
+    "good-console": "^5.1.0",
     "hapi": "^9.1.0",
     "node-pg-migrate": "0.0.9",
-    "pg": "^4.4.1"
+    "pg": "^4.4.1",
+    "pg-escape": "^0.1.0",
+    "q": "^1.4.1"
   },
   "devDependencies": {
     "lab": "^5.16.0"
