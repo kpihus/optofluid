@@ -6,7 +6,7 @@ var escape = require('pg-escape');
 
 var conString = process.env.DATABASE_URL || 'postgres://localhost/optofluid';
 
-var file = '1.txt';
+var file = '3.txt';
 
 var p = q.defer();
 var promises = [p.promise];
@@ -18,6 +18,7 @@ q.all(promises).done(function(){
 	setInterval(function(){
 		var item = collection[count];
 		count++;
+		console.log(count); //TODO: Remove
 		writeToDb(item, function(err){
 			if(err){
 				console.log(err);
@@ -25,7 +26,7 @@ q.all(promises).done(function(){
 				process.exit();
 			}
 		});
-	}, 2000)
+	}, 20)
 });
 
 function writeToDb(item, callback){
@@ -37,7 +38,7 @@ function writeToDb(item, callback){
 		var query = escape('INSERT INTO sensor ' +
 			'(ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9, ch10, ch11, ch12, time) ' +
 			'values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-			item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8], item[9], item[10], item[11], now);
+			item[0]/1000, item[1]/1000, item[2]/1000, item[3]/1000, item[4]/1000, item[5]/1000, item[6]/1000, item[7]/1000, item[8]/1000, item[9]/1000, item[10]/1000, item[11]/1000, now);
 		console.log(query); //TODO: Remove
 		client.query(query, function(err, res){
 			done();
@@ -57,6 +58,8 @@ function getData(file, p){
 		output: process.stdout,
 		terminal: false
 	});
+
+
 
 	var count = 0;
 	rd.on('line', function(line){

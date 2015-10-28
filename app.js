@@ -4,7 +4,7 @@ var Good = require('good');
 var EventEmitter = require('events').EventEmitter;
 var emitter = new EventEmitter();
 var services = require('./services');
-//var worker = require('./worker');
+
 var working = false;
 var sesint;
 var server = new Hapi.Server({
@@ -17,7 +17,22 @@ var server = new Hapi.Server({
 		}
 	}
 });
+
+
+
+
 server.connection({port: 3000});
+var io = require('socket.io')(server.listener);
+
+io.on('connection', function (socket) {
+
+	socket.emit('Oh hii!');
+
+	socket.on('burp', function () {
+		socket.emit('Excuse you!');
+	});
+});
+
 
 server.route({
 	method: 'GET',
@@ -36,13 +51,13 @@ server.route({
 	method: 'POST',
 	path: '/savesession',
 	handler: function(request, reply){
-
+		emitter.emit('session_end');
 		services.saveSession(request.payload, function(err, res){
 			if(err){
 				server.log(err)
 			}
 			if(res.sessId){
-				reply('200');
+				reply({sessid:res.sessId});
 				if(!working){
 					emitter.emit('session_start', res);
 					working = true;
@@ -50,6 +65,27 @@ server.route({
 			} else{
 				reply('500');
 			}
+		})
+	}
+});
+server.route({
+	method: 'GET',
+	path: '/stopsession',
+	handler: function(request, reply){
+		emitter.emit('session_end');
+		reply('done');
+	}
+});
+
+server.route({
+	method: 'GET',
+	path: '/getsessiondata',
+	handler: function(request, reply){
+		services.getSessionData(request.query, function(err, res){
+			if(err){
+				server.log(err);
+			}
+			reply(res);
 		})
 	}
 });
@@ -74,65 +110,8 @@ server.register({
 	});
 });
 
-emitter.on('session_start', function sessionStart(data){
-	var sessId = data.sessId;
-	server.log('Started session:', data.sessId);
-	console.log(data);
-	var duration = data.duration * 60;
-	var count = 0;
-	var lastData = data.start;
-	sesint = setInterval(function(){
-		count++;
-		console.log('Iteration:', count);
-		//Get latest dataset
-		services.getLastData(lastData, sessId, function(err, res){
-			if(err){
-				server.log(err);
-			}
-			if(res){
-				services.updateLastData(sessId, res.id, function(err, res){
-					if(err){
-						server.log(err);
-					}
-				});
-
-
-				var _260re = res.ch1;
-				var _260abs = res.ch2;
-				var _260flo = res.ch3;
-				var _300re = res.ch4;
-				var _300abs = res.ch5;
-				var _300flo = res.ch6;
-				var _315re = res.ch7;
-				var _315abs = res.ch8;
-				var _315flo = res.ch9;
-				var _370re = res.ch10;
-				var _370abs = res.ch11;
-				var _370flo = res.ch12;
-
-				var urea = _260abs+_300abs+_315abs+_370abs+_260flo+_300flo+_315flo+_370flo;
-
-				var sessiondata = {
-					urea: urea
-				};
-
-
-
-
-				lastData = res.time;
-				console.log(res); //TODO: Remove
-			}
-		});
-
-		if(count > duration){
-			server.log('Session ended:', data.sessId);
-			clearInterval(sesint);
-			working = false;
-		}
-	}, 1000);
-});
 
 exports.server = server;
 exports.emitter = emitter;
-
-
+exports.io = io;
+var worker = require('./worker');
