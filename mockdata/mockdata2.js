@@ -6,12 +6,31 @@ var escape = require('pg-escape');
 
 var conString = process.env.DATABASE_URL || 'postgres://localhost/optofluid';
 
-var file = '3.txt';
+var file = 'testfile.txt';
 
 var p = q.defer();
 var promises = [p.promise];
 var collection = [];
-getData(file, p);
+
+pg.connect(conString, function(err, client, done){
+	if(err){
+		console.log(JSON.stringify(err));
+		process.exit();
+	}
+	var query = escape('TRUNCATE TABLE sensor');
+	client.query(query, function(err, res){
+		if(err){
+			console.log(JSON.stringify(err));
+			process.exit();
+		}
+		getData(file, p);
+
+	})
+});
+
+
+
+
 
 q.all(promises).done(function(){
 	var count = 0;
@@ -30,7 +49,20 @@ q.all(promises).done(function(){
 	}, 2)
 });
 
+//Ch1:260RE  Ch2:260ABS Ch3:260FLO Ch4:300RE Ch5:300ABS Ch6:300FLO Ch7:315RE Ch8:315ABS Ch9:315FLO Ch10:370RE Ch11:370ABS Ch12:370FLO
+// 0   1   2   3   4   5
+//240	254	260	280	297	315
+
+// 1  2  3   4   5   6   7   8   9   10  11  12
+//    2          3           4           5
+
+
 function writeToDb(item, callback){
+	console.log(item); //TODO: Remove
+
+	if(typeof item == 'undefined'){
+		process.exit();
+	}
 	pg.connect(conString, function(err, client, done){
 		if(err){
 			console.log(err); //TODO: Remove
@@ -39,7 +71,7 @@ function writeToDb(item, callback){
 		var query = escape('INSERT INTO sensor ' +
 			'(ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9, ch10, ch11, ch12, time) ' +
 			'values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-			item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8], item[9], item[10], item[11], now);
+			0, item[2], item[6], 0, item[3], item[7], 0, item[4], item[8], 0, item[5], item[9], now);
 		console.log(query); //TODO: Remove
 		client.query(query, function(err, res){
 			done();
@@ -65,10 +97,12 @@ function getData(file, p){
 	var count = 0;
 	rd.on('line', function(line){
 		if(count > 3){
-			var data = line.split(' ');
-			data.splice(0, 5);
-			data.splice(data.length - 1, 1);
+			var data = line.split('\t');
+
+			//data.splice(0, 5);
+			//data.splice(data.length - 1, 1);
 			if(data.length > 2){
+				console.log(data); //TODO: Remove
 				collection.push(data);
 			}
 		}

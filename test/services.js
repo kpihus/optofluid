@@ -6,6 +6,17 @@ var pg = require('pg');
 var escape = require('pg-escape');
 var conString = process.env.DATABASE_URL;
 
+lab.experiment('Get patients', function(){
+   lab.test('Fetch patients list', function(done){
+      services.getPatients(function(err, res){
+          Code.expect(err).to.be.null();
+          Code.expect(res.length).to.be.above(0);
+          console.log(res);
+          done();
+      })
+   });
+});
+
 lab.experiment('Get last data with data', function(){
 	var dataId;
 	var before = new Date().getTime();

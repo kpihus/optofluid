@@ -5,9 +5,11 @@
   "main": "index.js",
   "dependencies": {
     "dotenv": "^1.2.0",
+    "expect.js": "^0.3.1",
     "good": "^6.4.0",
     "good-console": "^5.1.0",
     "hapi": "^9.1.0",
+    "mocha": "^2.4.5",
     "node-pg-migrate": "0.0.9",
     "pg": "^4.4.1",
     "pg-escape": "^0.1.0",
@@ -19,7 +21,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "pg-migrate": "export $(cat .env | xargs) && ./node_modules/.bin/pg-migrate"
+    "pg-migrate": "SET DATABASE_URL=postgres://localhost/optofluid && ./node_modules/.bin/pg-migrate"
   },
   "author": "Kristjan Pihus",
   "license": "ISC"

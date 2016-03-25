@@ -1,0 +1,27 @@
+* Lisada juurde post protsessing graafik.
+Shift arvutada
+esimene 10min kekmine
+keskmine 10min kesk @ 60min (25%)
+viimane lopust 10min kesk
+
+
+//    "pg-migrate": "export $(cat .env | xargs) && ./node_modules/.bin/pg-migrate"
+
+Algushetke määramiseks kasutan neelduvusi (täpsemalt intensiivsusi) 300 nm juures.
+Toorandmetega paralleelselt arvutatakse uus "signaal", mille iga uus väärtus on toorsignaali 5
+viimase väärtuse mediaan. Lisaks arvutatakse uue signaali tuletis ehk sisuliselt kahe kõrvutioleva
+väärtuse vahe. Dialüüs hinnatakse tagasiulatavalt alanuks kui 15 järjestikku tuletist on 0
+või väiksem ning nende summa ületab teatud lävendit. Teisisõnu signaal peab järjest
+vähenema ning vähenema summaarselt vähemalt teatud ulatuses.
+
+Kui alguspunkt on leitud, siis minnakse veel algoritmiga edasi kuni signaal hakkab esmakordselt tõusma.
+Sel hetkel öeldakse, et signaal on stabiliseerunud.
+Absorptsiooni arvutuseks võetakse praegu lihtsalt alguspunktile eelnenud toorsignaalide mediaan.
+See peaks andma üsna hea tulemuse eeldusel, et üle 50 % sellest osast on nö normaalne signaal ega pole
+üleliia häiringutest mõjutatud. Shift parameetrit pole sisse arvestatud.
+
+Lisan kirjaga ka oma pythoni koodi ning mõned pildid tulemustega. Vertikaalsed jooned näitavad
+hinnatud algus- ning stabiliseerumise aegu.
+
+Parimat,
+Joosep Michelis
