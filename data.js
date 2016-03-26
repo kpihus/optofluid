@@ -1,24 +1,43 @@
-
-var Handler = function (sessid) {
+var Handler = function (sessid, uftot, weight, duration, qd) {
   var self = this;
+  var startTime = new Date().getTime();
   self.sessid = sessid;
   self.lastDataTime = 0;
   self.started = false;
   self.startphase = 0;
+
+  self.ufrate = 1000 * uftot / duration;
+
   self.raw = [];
   self.mean = [];
   self.abs1 = [];
   self.abs2 = [];
 
-  self.c0 = 0;
-
-  var dataset = {
-
+  self.dataset = {
+    time: [],
+    uftot: uftot,
+    weight: weight,
+    duration: duration,
     c0: 0,
-    ct: 0,
-    spKtVb: 0,
-    eKtVb: 0,
-    RR: 0
+    cmean: [],
+    urea: [],
+    ct: [],
+    spKtVb: [],
+    eKtVb: [],
+    rr: [],
+    tr: []
+  };
+
+  self.latest = function(key){
+    if(self.dataset.hasOwnProperty(key)){
+      if (self.dataset[key].constructor === Array) {
+        return self.dataset[key][self.dataset[key].length - 1];
+      } else {
+        return self.dataset[key];
+      }
+    }else{
+      return false;
+    }
 
   };
 
@@ -65,16 +84,17 @@ var Handler = function (sessid) {
     }
     return median;
   };
-  self.average = function(arr){
+  self.average = function (arr) {
     var sum = 0;
-    for(var i= 0; i<arr.length; i++){
-      sum+=arr[i];
+    for (var i = 0; i < arr.length; i++) {
+      sum += arr[i];
     }
-    return sum/arr.length;
+    return sum / arr.length;
   };
 
+
   //Handler handling
-  var mapData = function(data){
+  var mapData = function (data) {
     return { //Raw sensor data
       _260re: data.ch1,
       _260abs: data.ch2,
@@ -93,34 +113,36 @@ var Handler = function (sessid) {
 
   self.addRaw = function (data) {
     self.lastDataTime = data.time;
-    if(!self.started){
+    if (!self.started) {
       startPhase(data);
-    }else{
+    } else {
       self.raw.push(mapData(data));
+      self.calculate();
     }
   };
-  var startPhase = function(data){
-    switch (self.startphase){
+  var startPhase = function (data) {
+    switch (self.startphase) {
       case 0:
-        if(findPhaseOne(data)){
-          self.startphase =1;
+        if (findPhaseOne(data)) {
+          self.startphase = 1;
           _300abs = [];
           _300med = [];
           _300der = [];
         }
         break;
       case 1:
-        if(findPhaseTwo(data)){
-          self.startphase=2;
+        if (findPhaseTwo(data)) {
+          self.startphase = 2;
           _300abs = [];
           _300med = [];
           _300der = [];
         }
         break;
       case 2:
-        if(findPhaseThree(data)){
+        if (findPhaseThree(data)) {
           self.startphase = 3;
           self.started = true;
+          startTime = new Date().getTime();
           self.raw.push(mapData(data));
         }
 
@@ -130,51 +152,48 @@ var Handler = function (sessid) {
         break;
     }
   };
-
-  var checkDerivative = function(arr, fall){
-      for(var i=0; i<arr.length; i++){
-        if(fall){
-          if(arr[i]>0){
-            return false;
-          }
-        }else{
-          if(arr[i]<0){
-            return false;
-          }
+  var checkDerivative = function (arr, fall) {
+    for (var i = 0; i < arr.length; i++) {
+      if (fall) {
+        if (arr[i] > 0) {
+          return false;
+        }
+      } else {
+        if (arr[i] < 0) {
+          return false;
         }
       }
-      return true;
+    }
+    return true;
   };
-
-  var findPhaseOne = function(data){
+  var findPhaseOne = function (data) {
     _300abs.push(data.ch5);
-    var items = _300abs.slice(_300abs.length-5);
+    var items = _300abs.slice(_300abs.length - 5);
     _300med.push(self.median(items));
-    _300der.push(_300med[_300med.length-1]-_300med[_300med.length-2]);
-    if(_300der.length>15){
-      return checkDerivative(_300der.slice(_300der.length-15), true);
+    _300der.push(_300med[_300med.length - 1] - _300med[_300med.length - 2]);
+    if (_300der.length > 15) {
+      return checkDerivative(_300der.slice(_300der.length - 15), true);
     }
     return false;
   };
-
-  var findPhaseTwo = function(data){
-   _300abs.push(data.ch5);
-    var items = _300abs.slice(_300abs.length-5);
+  var findPhaseTwo = function (data) {
+    _300abs.push(data.ch5);
+    var items = _300abs.slice(_300abs.length - 5);
     _300med.push(self.median(items));
-    _300der.push(_300med[_300med.length-1]-_300med[_300med.length-2]);
-    if(_300der.length>5){
-      return checkDerivative(_300der.slice(_300der.length-5), false);
+    _300der.push(_300med[_300med.length - 1] - _300med[_300med.length - 2]);
+    if (_300der.length > 5) {
+      return checkDerivative(_300der.slice(_300der.length - 5), false);
     }
     return false;
 
   };
-  var findPhaseThree = function(data){
+  var findPhaseThree = function (data) {
     _300abs.push(data.ch5);
-    var items = _300abs.slice(_300abs.length -5);
+    var items = _300abs.slice(_300abs.length - 5);
     _300med.push(self.average(items));
-    _300der.push(_300med[_300med.length-1]-_300med[_300med.length-2]);
-    if(_300der.length>5){
-      return checkDerivative(_300der.slice(_300der.length-5), true);
+    _300der.push(_300med[_300med.length - 1] - _300med[_300med.length - 2]);
+    if (_300der.length > 5) {
+      return checkDerivative(_300der.slice(_300der.length - 5), true);
     }
   };
 
@@ -243,32 +262,77 @@ var Handler = function (sessid) {
     return (self.getMOT(type).first * self.getMOT(type).last - Math.pow(self.getMOT(type).middle, 2)) / (self.getMOT(type).first + self.getMOT(type).last - 2 * self.getMOT(type).middle);
   };
 
+
   //a0+a1*A260+a2*A300+a3*A315+a4*A370+f1*f260+f2*f300+f3*F315+f4*F370
-  self.urea = function () {
-    if(!self.started){
+  var calcUrea = function () {
+    if (!self.started) {
       throw new Error('Session not started yet');
     }
+    var item = self.raw[self.raw.length - 1];
+    var urea = coef.a0 +
+      coef.a1_260 * item._260abs +
+      coef.a2_300 * item._300abs +
+      coef.a3_315 * item._315abs +
+      coef.a4_370 * item._370abs +
+      coef.f1_260 * item._260flo +
+      coef.f2_300 * item._300flo +
+      coef.f3_315 * item._315flo +
+      coef.f4_370 * item._370flo;
+    return parseFloat(Math.round(urea * 10) / 10);
+  };
 
+  self.calcSpKtVb = function (c0, ct, time) {
+    var spktv = -Math.log((ct / c0) - 0.008 * time) + (4 - 3.5 * ct / c0) * uftot / weight;
+    return Math.round(spktv * 100) / 100;
+  };
+
+  self.calcEKtVb = function (spktv, time) {
+    var ektv = spktv - spktv * 0.6 / time + 0.03;
+    return Math.round(ektv * 100) / 100;
+  };
+
+  self.calcTR = function (cmean, time, qd, ufrate) {
+    var tr = cmean * time*((qd+ufrate)/1000);
+    return Math.round(tr*10)/10;
+  };
+
+  self.calcRR = function(c0, ct){
+    var rr = 100*(c0-ct)/c0;
+    return Math.round(rr*100)/100;
+  };
+
+  self.calculate = function () {
     if (self.raw.length > 0) {
-      var item = self.raw[self.raw.length - 1];
-      var urea = coef.a0 +
-        coef.a1_260 * item._260abs +
-        coef.a2_300 * item._300abs +
-        coef.a3_315 * item._315abs +
-        coef.a4_370 * item._370abs +
-        coef.f1_260 * item._260flo +
-        coef.f2_300 * item._300flo +
-        coef.f3_315 * item._315flo +
-        coef.f4_370 * item._370flo;
-      if(self.c0==0){
-        self.c0=urea;
-      }
-      return parseFloat(Math.round(urea * 10) / 10);
-    } else {
-      return 0;
-    }
 
-  }
+
+      self.dataset.cmean.push(
+        self.average(self.dataset.ct)
+      );
+
+      self.dataset.time.push((self.lastDataTime - startTime) * 1000); // time in sec
+      self.dataset.urea.push(calcUrea());
+      self.dataset.ct.push(self.median(self.dataset.urea.slice(self.dataset.urea.length -10 )));
+      if (self.dataset.c0 == 0) {
+        self.dataset.c0 = self.dataset.ct[0];
+      }
+      self.dataset.spKtVb.push(
+        self.calcSpKtVb(
+          self.dataset.c0, self.latest('ct'),
+          self.latest('time') / 3600,
+          self.dataset.uftot,
+          self.dataset.weight
+        ));
+      self.dataset.eKtVb.push(
+        self.calcEKtVb(self.latest('spKtVb'), self.latest('time'))
+      );
+      self.dataset.rr.push(self.calcRR(self.dataset.c0, self.latest('ct')));
+      self.dataset.tr.push(
+        self.calcTR(self.latest('cmean'), self.latest('time'), qd, self.ufrate
+
+        ));
+
+    }
+  };
 
 
 };

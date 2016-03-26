@@ -42,7 +42,7 @@ var f4_370 = 23.60;
 //var f4_370=23.60;
 
 emitter.on('session_start', function (data) {
-  var duration = data.duration * 60 * 1000; //Minutes to millis
+  var duration = data.time * 60 * 1000; //Minutes to millis
   lastDataTime = new Date().getTime();
   var startTime = data.start;
   endTime = startTime + duration;

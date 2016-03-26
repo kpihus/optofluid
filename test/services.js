@@ -81,7 +81,7 @@ lab.experiment('End session', function(){
 		"patient": "3",
 		"totaluf": 1.9,
 		"dialflow": 500,
-		"duration": 240,
+		"time": 240,
 		"bloodflow": 300
 	};
 
