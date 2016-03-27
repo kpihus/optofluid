@@ -2,6 +2,12 @@ var pg = require('pg');
 var escape = require('pg-escape');
 var conString = process.env.DATABASE_URL || 'postgres://localhost/optofluid';
 
+
+exports.startSession = function(data, callback){
+  
+};
+
+
 exports.getPatients = function(callback){
 	pg.connect(conString, function(err, client, done){
 		if(err){
@@ -14,6 +20,7 @@ exports.getPatients = function(callback){
 		})
 	})
 };
+
 exports.saveSession = function(data, callback){
 	var now = new Date().getTime();
 	pg.connect(conString, function(err, client, done){
