@@ -28,15 +28,31 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
     tr: []
   };
 
+  /**
+   * Get latest item of given data item. All items if key omitted
+   * @param key
+   * @returns {*}
+   */
+
   self.latest = function(key){
-    if(self.dataset.hasOwnProperty(key)){
-      if (self.dataset[key].constructor === Array) {
-        return self.dataset[key][self.dataset[key].length - 1];
+    if (key) {
+      if (self.dataset.hasOwnProperty(key)) {
+        if (self.dataset[key].constructor === Array) {
+          return self.dataset[key][self.dataset[key].length - 1];
+        } else {
+          return self.dataset[key];
+        }
       } else {
-        return self.dataset[key];
+        return false;
       }
     }else{
-      return false;
+      var data = {};
+      for(key in self.dataset){
+        if(self.dataset.hasOwnProperty(key)){
+          data[key] = self.latest(key);
+        }
+      }
+      return data;
     }
 
   };
@@ -111,15 +127,24 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
     };
   };
 
-  self.addRaw = function (data) {
+  self.addRaw = function (data, callback) {
     self.lastDataTime = data.time;
     if (!self.started) {
       startPhase(data);
+      return callback(null, false);
     } else {
       self.raw.push(mapData(data));
-      self.calculate();
+      self.calculate(function(err, res){
+        if(res){
+          return callback(null, self.latest());
+        }
+      });
+      
     }
   };
+
+
+
   var startPhase = function (data) {
     switch (self.startphase) {
       case 0:
@@ -301,14 +326,15 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
     return Math.round(rr*100)/100;
   };
 
-  self.calculate = function () {
+
+  /**
+   * Perform all possible calculations
+   */
+  self.calculate = function (callback) {
     if (self.raw.length > 0) {
-
-
       self.dataset.cmean.push(
         self.average(self.dataset.ct)
       );
-
       self.dataset.time.push((self.lastDataTime - startTime) * 1000); // time in sec
       self.dataset.urea.push(calcUrea());
       self.dataset.ct.push(self.median(self.dataset.urea.slice(self.dataset.urea.length -10 )));
@@ -327,11 +353,10 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
       );
       self.dataset.rr.push(self.calcRR(self.dataset.c0, self.latest('ct')));
       self.dataset.tr.push(
-        self.calcTR(self.latest('cmean'), self.latest('time'), qd, self.ufrate
-
-        ));
-
+        self.calcTR(self.latest('cmean'), self.latest('time'), qd, self.ufrate));
+      return callback(null, true);
     }
+    callback(null,false);
   };
 
 

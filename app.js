@@ -22,17 +22,6 @@ var server = new Hapi.Server({
 
 
 server.connection({port: 3000});
-var io = require('socket.io')(server.listener);
-
-io.on('connection', function (socket) {
-
-	socket.emit('Oh hii!');
-
-	socket.on('burp', function () {
-		socket.emit('Excuse you!');
-	});
-});
-
 
 server.route({
 	method: 'GET',
@@ -113,5 +102,4 @@ server.register({
 
 exports.server = server;
 exports.emitter = emitter;
-exports.io = io;
-var worker = require('./worker');
+

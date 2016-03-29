@@ -5,7 +5,7 @@ var services = require('../services');
 var pg = require('pg');
 var escape = require('pg-escape');
 var conString = process.env.DATABASE_URL;
-var worker = require('../worker.js');
+var worker = require('../sandbox/worker.js');
 
 
 lab.experiment('Helper functions', function(){

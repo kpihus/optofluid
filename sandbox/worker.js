@@ -1,6 +1,6 @@
-var server = require('./app').server;
-var emitter = require('./app').emitter;
-var services = require('./services');
+var server = require('./../app').server;
+var emitter = require('./../app').emitter;
+var services = require('./../services');
 var q = require('q');
 var intervalId;
 server.log('Worker started...'); //TODO: Remove

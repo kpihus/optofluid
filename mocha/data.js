@@ -1,5 +1,6 @@
 var data = require('../data.js');
 var expect = require('expect.js');
+var q = require('q');
 
 describe('Math functions', function () {
   var handler = new data.Handler(1, 2, 77.3, 240, 500);
@@ -128,6 +129,11 @@ describe('Handle data', function () {
       var test = handler.latest('test');
       expect(test).to.be.equal(false);
     });
+    it('Should give all if no key is specified', function(){
+      var data = handler.latest();
+      expect(typeof data).to.be.equal('object');
+      expect(data.urea).to.be.equal(10);
+    })
 
   });
   describe('With real data', function () {
@@ -154,10 +160,27 @@ describe('Handle data', function () {
       tr: 0.1
     };
     before(function(done){
+
+      var promises = [];
+      var add = function(data, p){
+        handler.addRaw(format(data), function(err, res){
+          p.resolve();
+        });
+      };
+
+
+
       for(var i=0; i<dataset.length; i++){
-        handler.addRaw(format(dataset[i]));
+        var p = q.defer();
+        promises.push(p.promise);
+        add(dataset[i], p);
       }
-      done();
+
+      q.all(promises).done(function(){
+        done();
+      });
+
+
     });
 
 
