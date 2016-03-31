@@ -1,5 +1,7 @@
 var pg = require('pg');
 var escape = require('pg-escape');
+var sesshandler = require('./session');
+var worker;
 var conString = process.env.DATABASE_URL || 'postgres://localhost/optofluid';
 
 
@@ -22,11 +24,22 @@ exports.getPatients = function(callback){
 };
 
 
-
+exports.saveSession = function(data, callback){
+  worker = new sesshandler.Worker(data);
+  worker.startSession(function(err, res){
+    if(err){
+      return callback(err);
+    }
+    worker.startProcessing();
+    callback(null, res);
+  })
+};
 
 
 
 exports.saveSessionData = function(sessid, data, callback){
+  worker = new sesshandler.Worker(data);
+  
 	pg.connect(conString, function(err, client, done){
 		if(err){
 			return callback(err);
@@ -38,6 +51,8 @@ exports.saveSessionData = function(sessid, data, callback){
 				return callback(err);
 			}
 			if(res.rowCount>0){
+        
+        
 				callback(null, true);
 			}else{
 				callback(null, false);
@@ -47,7 +62,7 @@ exports.saveSessionData = function(sessid, data, callback){
 };
 
 exports.getSessionData = function(data, callback){
-	console.log(data); //TODO: Remove
+	// console.log(data); //TODO: Remove
 	pg.connect(conString, function(err, client, done){
 		if(err){
 			return callback(err);

@@ -18,14 +18,14 @@ describe('Session Methods', function () {
     "bloodflow": 300
   };
   after(function (done) {
-    pg.connect(conString, function(err, client, doneDb){
+    pg.connect(conString, function (err, client, doneDb) {
       expect(err).to.be.equal(null);
       var query = escape('DELETE FROM session WHERE id = %L', sessid);
-      client.query(query, function(err, res){
+      client.query(query, function (err, res) {
         doneDb();
         expect(err).to.be.equal(null);
         expect(res.rowCount).to.be.equal(1);
-        dao.getSession(sessid, function(err, res){
+        dao.getSession(sessid, function (err, res) {
           expect(err).to.be.equal(null);
           expect(res).to.be.equal(null);
           done();
@@ -33,8 +33,21 @@ describe('Session Methods', function () {
       })
     });
   });
+  after(function (done) {
+    pg.connect(conString, function (err, client, doneDb) {
+      expect(err).to.be.equal(null);
+      var query = escape('DELETE FROM session_data WHERE sessionid = %s', 6);
+      client.query(query, function (err, res) {
+        doneDb();
+        expect(err).to.be.equal(null);
+        expect(res.rowCount).to.be.equal(1);
+        done();
+      });
+    });
+  });
+
   it('Should write new session into database', function (done) {
-    dao.saveNewSession(data, function(err, res){
+    dao.saveNewSession(data, function (err, res) {
       expect(err).to.be.equal(null);
       expect(res.sessId).to.be.above(1);
       sessid = res.sessId;
@@ -42,39 +55,46 @@ describe('Session Methods', function () {
       done();
     });
   });
-  it('Should return return session item', function(done){
-    dao.getSession(sessid, function(err, res){
+  it('Should return return session item', function (done) {
+    dao.getSession(sessid, function (err, res) {
       expect(err).to.be.equal(null);
       expect(res.data.start).to.be.equal(data.start);
       dbData = res.data;
       done();
     });
   });
-  it('Should update session item', function(done){
+  it('Should update session item', function (done) {
     dbData.status = 'stopped';
-    dao.updateSession(sessid, dbData, function(err, res){
+    dao.updateSession(sessid, dbData, function (err, res) {
       expect(err).to.be.equal(null);
       expect(res).to.be.equal(true);
-      dao.getSession(sessid, function(err, res){
+      dao.getSession(sessid, function (err, res) {
         expect(err).to.be.equal(null);
         expect(res.data.status).to.be.equal('stopped');
         done();
-      })
+      });
 
-    })
-  })
+    });
+  });
+  it('Should save session data', function (done) {
+    dao.saveSessionData(6, {timestamp: 666}, function (err, res) {
+      expect(err).to.be.equal(null);
+      expect(res).to.be.equal(true);
+      done();
+    });
+  });
 });
 
-describe('Sensor functions', function(){
+describe('Sensor functions', function () {
   var testid;
-  before(function(done){
-    pg.connect(conString, function(err, client, doneDb){
+  before(function (done) {
+    pg.connect(conString, function (err, client, doneDb) {
       expect(err).to.be.equal(null);
       var query = escape('INSERT INTO sensor ' +
         '(ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8, ch9, ch10, ch11, ch12, time) ' +
         'values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id',
         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 1);
-      client.query(query, function(err, res){
+      client.query(query, function (err, res) {
         doneDb();
         expect(err).to.be.equal(null);
         expect(res.rowCount).to.be.equal(1);
@@ -83,11 +103,11 @@ describe('Sensor functions', function(){
       });
     });
   });
-  after(function(done){
-    pg.connect(conString, function(err, client, doneDb){
+  after(function (done) {
+    pg.connect(conString, function (err, client, doneDb) {
       expect(err).to.be.equal(null);
       var query = escape('DELETE FROM sensor WHERE id = %L', testid);
-      client.query(query, function(err, res){
+      client.query(query, function (err, res) {
         doneDb();
         expect(err).to.be.equal(null);
         expect(res.rowCount).to.be.equal(1);
@@ -95,8 +115,8 @@ describe('Sensor functions', function(){
       })
     });
   });
-  it('Should get next unhandled reading', function(done){
-    dao.getReading(7, function(err, res){
+  it('Should get next unhandled reading', function (done) {
+    dao.getReading(7, function (err, res) {
       expect(err).to.be.equal(null);
       expect(res.ch1).to.be.equal(6);
       done();

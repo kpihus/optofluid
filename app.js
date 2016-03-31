@@ -5,6 +5,7 @@ var EventEmitter = require('events').EventEmitter;
 var emitter = new EventEmitter();
 var services = require('./services');
 
+
 var working = false;
 var sesint;
 var server = new Hapi.Server({
@@ -47,10 +48,6 @@ server.route({
 			}
 			if(res.sessId){
 				reply({sessid:res.sessId});
-				if(!working){
-					emitter.emit('session_start', res);
-					working = true;
-				}
 			} else{
 				reply('500');
 			}

@@ -14,6 +14,7 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
   self.abs2 = [];
 
   self.dataset = {
+    timestamp:[],
     time: [],
     uftot: uftot,
     weight: weight,
@@ -123,7 +124,8 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
       _315flo: data.ch9,
       _370re: data.ch10,
       _370abs: data.ch11,
-      _370flo: data.ch12
+      _370flo: data.ch12,
+      timestamp: data.time
     };
   };
 
@@ -134,6 +136,7 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
       return callback(null, false);
     } else {
       self.raw.push(mapData(data));
+      
       self.calculate(function(err, res){
         if(res){
           return callback(null, self.latest());
@@ -353,7 +356,9 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
       );
       self.dataset.rr.push(self.calcRR(self.dataset.c0, self.latest('ct')));
       self.dataset.tr.push(
-        self.calcTR(self.latest('cmean'), self.latest('time'), qd, self.ufrate));
+        self.calcTR(self.latest('cmean'), self.latest('time'), qd, self.ufrate)
+      );
+      self.dataset.timestamp.push(self.raw[self.raw.length - 1].timestamp);
       return callback(null, true);
     }
     callback(null,false);
