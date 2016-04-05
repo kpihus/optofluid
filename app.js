@@ -5,9 +5,7 @@ var EventEmitter = require('events').EventEmitter;
 var emitter = new EventEmitter();
 var services = require('./services');
 
-
-var working = false;
-var sesint;
+//Create hapi server
 var server = new Hapi.Server({
 	connections: {
 		routes: {
@@ -18,11 +16,17 @@ var server = new Hapi.Server({
 		}
 	}
 });
-
-
-
-
 server.connection({port: 3000});
+
+//Socket.io
+var io = require('socket.io')(server.listener);
+var comSocket;
+io.on('connection', function(socket){
+  comSocket = socket;
+  console.log('Connected...');
+  socket.emit('greeting');
+});
+
 
 server.route({
 	method: 'GET',
@@ -42,7 +46,7 @@ server.route({
 	path: '/savesession',
 	handler: function(request, reply){
 		emitter.emit('session_end');
-		services.saveSession(request.payload, function(err, res){
+		services.saveSession(request.payload, comSocket, function(err, res){
 			if(err){
 				server.log(err)
 			}

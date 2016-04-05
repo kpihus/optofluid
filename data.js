@@ -38,7 +38,7 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
   self.latest = function(key){
     if (key) {
       if (self.dataset.hasOwnProperty(key)) {
-        if (self.dataset[key].constructor === Array) {
+        if (self.dataset[key] instanceof Array) {
           return self.dataset[key][self.dataset[key].length - 1];
         } else {
           return self.dataset[key];
@@ -180,13 +180,22 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
         break;
     }
   };
+
+  /**
+   * Detect rise or fall of signal
+   * @param arr
+   * @param fall
+   * @returns {boolean}
+   */
   var checkDerivative = function (arr, fall) {
     for (var i = 0; i < arr.length; i++) {
       if (fall) {
+        //Detect fall
         if (arr[i] > 0) {
           return false;
         }
       } else {
+        //detect rise
         if (arr[i] < 0) {
           return false;
         }
@@ -363,7 +372,9 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
     }
     callback(null,false);
   };
-
+  //SWYgeW91IGhhdmUgcmVhY2hlZCBoZXJlLCB5b3UgcHJvYmFibHkgZG9uJ3QgdW5kZXJz
+  //dGFuZCBhbnltb3JlIHdoYXQgaXMgZ29pbmcgb24gPyBEb24ndCB3b3JyeSwgeW91IGF
+  //yZSBub3QgdGhlIG9ubHkgb25lLg==
 
 };
 

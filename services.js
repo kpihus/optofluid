@@ -24,8 +24,8 @@ exports.getPatients = function(callback){
 };
 
 
-exports.saveSession = function(data, callback){
-  worker = new sesshandler.Worker(data);
+exports.saveSession = function(data, comSocket, callback){
+  worker = new sesshandler.Worker(data, comSocket);
   worker.startSession(function(err, res){
     if(err){
       return callback(err);

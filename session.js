@@ -5,8 +5,7 @@ var dao = require('./dao.js');
 var q = require('q');
 
 
-
-var Worker = function (sessiondata) {
+var Worker = function (sessiondata, comSocket) {
   var self = this;
   handler = null;
   var session = sessiondata;
@@ -56,7 +55,7 @@ var Worker = function (sessiondata) {
       })
     });
   };
-  var sensorData = function(){
+  var addSensorData = function(){
     clearTable('sensor',function(err){
       var count = 0;
       for(var i=0; i<datafile.length; i++){
@@ -88,17 +87,12 @@ var Worker = function (sessiondata) {
         session.duration,
         session.dialflow
       );
-      sensorData();
+      addSensorData();
       callback(null, res);
     });
   };
 
-  emitter.on('next_data', function(){
-    setTimeout(function(){
-      self.handleData();  
-    }, 1000);
-    
-  });
+
   self.startProcessing = function(){
     started=true;
     sessionStartTime=new Date().getTime();
@@ -111,8 +105,6 @@ var Worker = function (sessiondata) {
     started = false;
   };
 
-
-
   self.handleData = function () {
     fetchData(session.sessId, function(err, data){
       if(err){
@@ -121,18 +113,17 @@ var Worker = function (sessiondata) {
       // emitter.emit('next_data');
       setTimeout(function(){
         self.handleData();  
-      }, 30);
+      }, 500);
       
       if (data) {
         handler.addRaw(data, function (err, processed) {
-
+          comSocket.emit('newdata', processed);
           if (processed) {
             dao.saveSessionData(session.sessId, processed, function(err, res){
               if(err || !res){
                 console.log('Session data save failed');
               }
             })
-
           }
         });
       }

@@ -75,38 +75,33 @@ describe('Handle data', function () {
     console.log(key, '=> Wanted:', wanted, 'Actual:', actual,'\n');
   };
   describe('Start phases', function () {
-    var dataset = require('./data.json');
-    it('From phase 0 to 1', function (done) {
-      var handler = new data.Handler(1);
-      expect(handler.startphase).to.be.equal(0);
-      for (var i = 0; i < 35; i++) {
-        handler.addRaw(format(dataset[i]));
+    var handler = new data.Handler(1);
+
+    it('Should be in phase 3', function (done) {
+      var dataset = require('./data.json');
+      var promises = [];
+      var doAdd = function(data, p){
+        handler.addRaw(data, function(err, res){
+          expect(err).to.be.equal(null);
+          p.resolve();
+        })
+      };
+
+      for (var i = 0; i < dataset.length; i++) {
+        var item = format(dataset[i]);
+        var p = q.defer();
+        promises.push(p.promise);
+
+        doAdd(item, p);
       }
-      expect(handler.startphase).to.be.equal(1);
-      done();
+
+      q.all(promises).done(function(){
+        done();
+      });
     });
 
-    it('From phase 1 to 2', function (done) {
-      var handler = new data.Handler(1);
-      handler.startphase = 1;
-      expect(handler.startphase).to.be.equal(1);
-      for (var i = 35; i < 54; i++) {
-        handler.addRaw(format(dataset[i]));
-      }
-      expect(handler.startphase).to.be.equal(2);
-      done();
-    });
-    it('From phase 2 to 3', function (done) {
-      var handler = new data.Handler(1);
-      handler.startphase = 2;
-      expect(handler.startphase).to.be.equal(2);
 
-      for (var i = 54; i < dataset.length; i++) {
-        handler.addRaw(format(dataset[i]));
-      }
-      expect(handler.startphase).to.be.equal(3);
-      done();
-    });
+
   });
 
   describe('Get latest', function(){
@@ -215,7 +210,7 @@ describe('Handle data', function () {
       var value = handler.latest(key);
       var control = res[key];
       report(key, control, value);
-      expect(Math.abs(value - control)).to.be.below(error[key]);
+      expect( Math.abs(value - control)).to.be.below(error[key]);
       done();
     });
     it('Should give valid rr', function(done){
