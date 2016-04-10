@@ -23,10 +23,25 @@ var io = require('socket.io')(server.listener);
 var comSocket;
 io.on('connection', function(socket){
   comSocket = socket;
-  console.log('Connected...');
+  console.log('Client Connected...');
   socket.emit('greeting');
+	socket.on('disconnect', function(){
+		console.log('...Client disconnected');
+		comSocket = null;
+	});
 });
 
+//Send current time
+setInterval(function(){
+	if (comSocket) {
+      var t = new Date();
+      var seconds = (t.getSeconds() < 10) ? '0' + t.getSeconds() : t.getSeconds();
+      var minutes = (t.getMinutes() < 10) ? '0' + t.getMinutes() : t.getMinutes();
+      var hours = (t.getHours() < 10) ? '0' + t.getHours() : t.getHours();
+      var time = hours + ':' + minutes + ':' + seconds;
+      comSocket.emit('time', {time: time, timestamp: new Date().getTime()});
+    }
+}, 1000);
 
 server.route({
 	method: 'GET',
@@ -51,7 +66,7 @@ server.route({
 				server.log(err)
 			}
 			if(res.sessId){
-				reply({sessid:res.sessId});
+				reply({sessid:res.sessId, start: res.start});
 			} else{
 				reply('500');
 			}

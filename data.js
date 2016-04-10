@@ -133,7 +133,7 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
     self.lastDataTime = data.time;
     if (!self.started) {
       startPhase(data);
-      return callback(null, false);
+      return callback(null, self.latest());
     } else {
       self.raw.push(mapData(data));
       

@@ -70,7 +70,7 @@ var Worker = function (sessiondata, comSocket) {
 
   };
   /*
-   ADD TEST DATA
+   END of ADD TEST DATA
    */
   
 
@@ -90,6 +90,10 @@ var Worker = function (sessiondata, comSocket) {
       addSensorData();
       callback(null, res);
     });
+  };
+  
+  self.stopSession = function(callback){
+    
   };
 
 
@@ -118,10 +122,10 @@ var Worker = function (sessiondata, comSocket) {
       if (data) {
         handler.addRaw(data, function (err, processed) {
           comSocket.emit('newdata', processed);
-          if (processed) {
+          if (processed && processed.timestamp) {
             dao.saveSessionData(session.sessId, processed, function(err, res){
               if(err || !res){
-                console.log('Session data save failed');
+                console.log('Session data save failed', err);
               }
             })
           }
