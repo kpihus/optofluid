@@ -11,7 +11,7 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
   self.raw = [];
   self.mean = [];
   self.abs1 = [];
-  self.abs2 = [];u
+  self.abs2 = [];
 
   self.dataset = {
     timestamp:[],
