@@ -1,6 +1,6 @@
 var Handler = function (sessid, uftot, weight, duration, qd) {
   var self = this;
-  var startTime = new Date().getTime();
+  var startTime = 0;
   self.sessid = sessid;
   self.lastDataTime = 0;
   self.started = false;
@@ -131,6 +131,9 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
 
   self.addRaw = function (data, callback) {
     self.lastDataTime = data.time;
+    if(startTime == 0){
+      startTime = data.time;
+    }
     if (!self.started) {
       startPhase(data);
       return callback(null, self.latest());
@@ -170,7 +173,7 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
         if (findPhaseThree(data)) {
           self.startphase = 3;
           self.started = true;
-          startTime = new Date().getTime();
+          startTime = data.time;
           self.raw.push(mapData(data));
         }
 
@@ -347,7 +350,7 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
       self.dataset.cmean.push(
         self.average(self.dataset.ct)
       );
-      self.dataset.time.push((self.lastDataTime - startTime) * 1000); // time in sec
+      self.dataset.time.push(((self.lastDataTime - startTime) / 1000)/60); // time in min
       self.dataset.urea.push(calcUrea());
       self.dataset.ct.push(self.median(self.dataset.urea.slice(self.dataset.urea.length -10 )));
       if (self.dataset.c0 == 0) {

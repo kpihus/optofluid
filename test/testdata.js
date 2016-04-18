@@ -34,12 +34,17 @@ var clearTable = function(table, callback){
     })
   });
 };
-exports.addSensorData = function(){
+exports.addSensorData = function(starttime){
   clearTable('sensor',function(err){
-    var count = 0;
+    if(err){
+      console.log('CLEAR ERROR', JSON.stringify(err))
+    }
+    var count = starttime;
+    var ic =0;
     for(var i=0; i<datafile.length; i++){
       setTimeout(function(){
-        var item = datafile[count++];
+        count = count+30000;
+        var item = datafile[ic++];
         addToDb(item, count);
       },1);
 

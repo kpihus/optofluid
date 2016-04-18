@@ -30,7 +30,7 @@ var Worker = function (sessiondata, comSocket) {
         session.duration,
         session.dialflow
       );
-      testData.addSensorData();
+      testData.addSensorData(res.start);
       callback(null, res);
     });
   };
