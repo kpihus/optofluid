@@ -14,7 +14,7 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
   self.abs2 = [];
 
   self.dataset = {
-    timestamp:[],
+    timestamp: [],
     time: [],
     uftot: uftot,
     weight: weight,
@@ -26,7 +26,8 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
     spKtVb: [],
     eKtVb: [],
     rr: [],
-    tr: []
+    tr: [],
+    progress: []
   };
 
   /**
@@ -35,7 +36,7 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
    * @returns {*}
    */
 
-  self.latest = function(key){
+  self.latest = function (key) {
     if (key) {
       if (self.dataset.hasOwnProperty(key)) {
         if (self.dataset[key] instanceof Array) {
@@ -46,10 +47,10 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
       } else {
         return false;
       }
-    }else{
+    } else {
       var data = {};
-      for(key in self.dataset){
-        if(self.dataset.hasOwnProperty(key)){
+      for (key in self.dataset) {
+        if (self.dataset.hasOwnProperty(key)) {
           data[key] = self.latest(key);
         }
       }
@@ -131,7 +132,7 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
 
   self.addRaw = function (data, callback) {
     self.lastDataTime = data.time;
-    if(startTime == 0){
+    if (startTime == 0) {
       startTime = data.time;
     }
     if (!self.started) {
@@ -139,16 +140,15 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
       return callback(null, self.latest());
     } else {
       self.raw.push(mapData(data));
-      
-      self.calculate(function(err, res){
-        if(res){
+
+      self.calculate(function (err, res) {
+        if (res) {
           return callback(null, self.latest());
         }
       });
-      
+
     }
   };
-
 
 
   var startPhase = function (data) {
@@ -332,13 +332,13 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
   };
 
   self.calcTR = function (cmean, time, qd, ufrate) {
-    var tr = cmean * time*((qd+ufrate)/1000);
-    return Math.round(tr*10)/10;
+    var tr = cmean * time * ((qd + ufrate) / 1000);
+    return Math.round(tr * 10) / 10;
   };
 
-  self.calcRR = function(c0, ct){
-    var rr = 100*(c0-ct)/c0;
-    return Math.round(rr*100)/100;
+  self.calcRR = function (c0, ct) {
+    var rr = 100 * (c0 - ct) / c0;
+    return Math.round(rr * 100) / 100;
   };
 
 
@@ -350,9 +350,9 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
       self.dataset.cmean.push(
         self.average(self.dataset.ct)
       );
-      self.dataset.time.push(((self.lastDataTime - startTime) / 1000)/60); // time in min
+      self.dataset.time.push(((self.lastDataTime - startTime) / 1000) / 60); // time in min
       self.dataset.urea.push(calcUrea());
-      self.dataset.ct.push(self.median(self.dataset.urea.slice(self.dataset.urea.length -10 )));
+      self.dataset.ct.push(self.median(self.dataset.urea.slice(self.dataset.urea.length - 10)));
       if (self.dataset.c0 == 0) {
         self.dataset.c0 = self.dataset.ct[0];
       }
@@ -371,9 +371,10 @@ var Handler = function (sessid, uftot, weight, duration, qd) {
         self.calcTR(self.latest('cmean'), self.latest('time'), qd, self.ufrate)
       );
       self.dataset.timestamp.push(self.raw[self.raw.length - 1].timestamp);
+      self.dataset.progress.push(self.latest('time') * self.ufrate)
       return callback(null, true);
     }
-    callback(null,false);
+    callback(null, false);
   };
   //SWYgeW91IGhhdmUgcmVhY2hlZCBoZXJlLCB5b3UgcHJvYmFibHkgZG9uJ3QgdW5kZXJz
   //dGFuZCBhbnltb3JlIHdoYXQgaXMgZ29pbmcgb24gPyBEb24ndCB3b3JyeSwgeW91IGF

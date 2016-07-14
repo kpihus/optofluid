@@ -10,7 +10,20 @@ exports.startSession = function (data, callback) {
 };
 
 
-exports.getPatients = function (callback) {
+exports.getPatients = function (data, callback) {
+  pg.connect(conString, function (err, client, done) {
+    if (err) {
+      return callback(err);
+    }
+    var query = escape('INSERT INTO patient (firstname, lastname, idcode) VALUES(%s, %s, %L) RETURNING id', data.firstname, data.lastname, data.idcode);
+    client.query(query, function (err, res) {
+      done();
+      callback(err, res.rows);
+    })
+  })
+};
+
+exports.addPatient = function (callback) {
   pg.connect(conString, function (err, client, done) {
     if (err) {
       return callback(err);
@@ -21,7 +34,7 @@ exports.getPatients = function (callback) {
       callback(err, res.rows);
     })
   })
-};
+}
 
 
 exports.saveSession = function (data, comSocket, callback) {

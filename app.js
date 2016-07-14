@@ -56,6 +56,15 @@ server.route({
 		});
 	}
 });
+
+server.route({
+	method: 'POST',
+	path: '/addpatient',
+	handler: function (request, reply){
+		reply(200)
+	}
+})
+
 server.route({
 	method: 'POST',
 	path: '/savesession',
