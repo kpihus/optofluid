@@ -10,20 +10,7 @@ exports.startSession = function (data, callback) {
 };
 
 
-exports.getPatients = function (data, callback) {
-  pg.connect(conString, function (err, client, done) {
-    if (err) {
-      return callback(err);
-    }
-    var query = escape('INSERT INTO patient (firstname, lastname, idcode) VALUES(%s, %s, %L) RETURNING id', data.firstname, data.lastname, data.idcode);
-    client.query(query, function (err, res) {
-      done();
-      callback(err, res.rows);
-    })
-  })
-};
-
-exports.addPatient = function (callback) {
+exports.getPatients = function (callback) {
   pg.connect(conString, function (err, client, done) {
     if (err) {
       return callback(err);
@@ -34,8 +21,33 @@ exports.addPatient = function (callback) {
       callback(err, res.rows);
     })
   })
+};
+
+exports.addPatient = function (data,callback) {
+  pg.connect(conString, function (err, client, done) {
+    if (err) {
+      return callback(err);
+    }
+    var query = escape('INSERT INTO patient (firstname, lastname, idcode) VALUES(%L, %L, %s) RETURNING id', data.firstname, data.lastname, data.idcode);
+    client.query(query, function (err, res) {
+      done();
+      callback(err, 1);
+    })
+  })
 }
 
+exports.getLastSession = function(personid, callback){
+  pg.connect(conString, function(err, client, done){
+    if(err){
+      return callback(err)
+    }
+    var query = escape("SELECT * FROM session WHERE data->>'patient' = %L ORDER BY time DESC LIMIT 1", personid)
+    client.query(query, function(err, res){
+      done()
+      callback(err, res.rows)
+    })
+  })
+}
 
 exports.saveSession = function (data, comSocket, callback) {
   data.start = new Date().getTime();
