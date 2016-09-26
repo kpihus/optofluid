@@ -20,7 +20,7 @@ var Worker = function (sessiondata, comSocket) {
   self.startSession = function (callback) {
     dao.saveNewSession(session, function (err, res) {
       if (err) {
-        callback(new Error('Unable to start session', JSON.stringify(err)));
+        return callback(new Error('Unable to start session', JSON.stringify(err)));
       }
       session = res;
       handler = new Handler(

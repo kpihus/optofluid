@@ -4,6 +4,7 @@ var Good = require('good');
 var EventEmitter = require('events').EventEmitter;
 var emitter = new EventEmitter();
 var services = require('./services');
+var apiPort = process.env.API_PORT || 3003
 
 //Create hapi server
 var server = new Hapi.Server({
@@ -16,7 +17,7 @@ var server = new Hapi.Server({
     }
   }
 });
-server.connection({port: 3000});
+server.connection({port: apiPort});
 
 //Socket.io
 var io = require('socket.io')(server.listener);
@@ -88,6 +89,8 @@ server.route({
       }
       if (res.sessId) {
         reply({sessid: res.sessId, start: res.start});
+      } else if(!comSocket) {
+        reply('500')
       } else {
         reply('500');
       }
