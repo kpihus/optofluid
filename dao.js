@@ -1,6 +1,6 @@
 var pg = require('pg');
 var escape = require('pg-escape');
-var conString = process.env.DATABASE_URL || 'postgres://localhost/optofluid';
+var conString = process.env.DATABASE_URL || 'postgres://postgres:average@localhost/optofluid';
 
 /**************************************
  *             SESSION                *

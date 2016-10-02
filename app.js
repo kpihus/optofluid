@@ -32,17 +32,6 @@ io.on('connection', function (socket) {
   });
 });
 
-//Send current time
-setInterval(function () {
-  if (comSocket) {
-    var t = new Date();
-    var seconds = (t.getSeconds() < 10) ? '0' + t.getSeconds() : t.getSeconds();
-    var minutes = (t.getMinutes() < 10) ? '0' + t.getMinutes() : t.getMinutes();
-    var hours = (t.getHours() < 10) ? '0' + t.getHours() : t.getHours();
-    var time = hours + ':' + minutes + ':' + seconds;
-    comSocket.emit('time', {time: time, timestamp: new Date().getTime()});
-  }
-}, 1000);
 
 server.route({
   method: 'GET',
@@ -82,8 +71,7 @@ server.route({
   method: 'POST',
   path: '/savesession',
   handler: function (request, reply) {
-    emitter.emit('session_end');
-    services.saveSession(request.payload, comSocket, function (err, res) {
+    services.saveSession(request.payload, comSocket, emitter, function (err, res) {
       if (err) {
         server.log(err)
       }

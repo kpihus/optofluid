@@ -22,7 +22,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "pg-migrate": "SET DATABASE_URL=postgres://localhost/optofluid && ./node_modules/.bin/pg-migrate"
+    "pg-migrate": "SET DATABASE_URL=postgres://postgres:average@localhost/optofluid && ./node_modules/.bin/pg-migrate"
   },
   "author": "Kristjan Pihus",
   "license": "ISC"

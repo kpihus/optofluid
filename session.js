@@ -1,14 +1,12 @@
-var EventEmitter = require('events').EventEmitter;
-var emitter = new EventEmitter();
 var Handler = require('./data.js').Handler;
 var dao = require('./dao.js');
 var q = require('q');
-var server = require('./app').server;
+var server = require('./app.js').server;
 
 var testData = require('./test/testdata');
 
 
-var Worker = function (sessiondata, comSocket) {
+var Worker = function (sessiondata, comSocket, emitter) {
   var self = this;
   var handler = null;
   var session = sessiondata;
@@ -16,7 +14,28 @@ var Worker = function (sessiondata, comSocket) {
   var dataHandler;
   var sessionStartTime;
   var sessionEndTime;
+  var timeNow;
   var promises = [];
+
+  emitter.on('session_end', function(){
+    started = false
+    console.log('end session')
+  })
+
+  setInterval(function () {
+    if (comSocket) {
+
+      var t = (timeNow) ? new Date(timeNow): new Date();
+      var seconds = (t.getSeconds() < 10) ? '0' + t.getSeconds() : t.getSeconds();
+      var minutes = (t.getMinutes() < 10) ? '0' + t.getMinutes() : t.getMinutes();
+      var hours = (t.getHours() < 10) ? '0' + t.getHours() : t.getHours();
+      var time = hours + ':' + minutes + ':' + seconds;
+      comSocket.emit('time', {
+        time: time,
+        timestamp: timeNow
+      });
+    }
+  }, 1000);
 
 
 
@@ -33,7 +52,8 @@ var Worker = function (sessiondata, comSocket) {
         session.duration,
         session.dialflow
       );
-      server.log('Session started')
+      sessionStartTime=new Date().getTime();
+      sessionEndTime = session.duration * 60 *1000+sessionStartTime;
       testData.addSensorData(res.start);
       callback(null, res);
     });
@@ -42,7 +62,7 @@ var Worker = function (sessiondata, comSocket) {
   self.stopSession = function(callback){
     started = false;
     session.status = 'stopped'
-    session.end = sessionEndTime
+    session.end = timeNow
     clearTimeout(dataHandler)
 
     dao.updateSession(session.sessId, session, function(err, res){
@@ -50,8 +70,7 @@ var Worker = function (sessiondata, comSocket) {
         throw new Error('Unable to end session', err)
       }
       if(res){
-        server.log('Session ended')
-        comSocket.emit('sessionended')
+        comSocket.emit('status', 'endex')
         handler = null
       }
     })
@@ -60,10 +79,16 @@ var Worker = function (sessiondata, comSocket) {
 
   self.startProcessing = function(){
     started=true;
-    sessionStartTime=new Date().getTime();
     console.log('START PROCESSING');
     // emitter.emit('next_data');
-    self.handleData();
+    comSocket.emit('status', 'started')
+    dataHandler = setInterval(function(){
+      if (started) {
+        self.handleData();
+      } else {
+        self.stopSession()
+      }
+    }, 1000);
   };
 
   self.handleData = function () {
@@ -71,21 +96,13 @@ var Worker = function (sessiondata, comSocket) {
       if(err){
         throw err;
       }
+      timeNow = parseInt(data.time);
       // emitter.emit('next_data');
-
-      dataHandler = setTimeout(function(){
-        if (started) {
-          self.handleData();
-        } else {
-          self.stopSession()
-        }
-      }, 1000);
-      
       if (data) {
         handler.addRaw(data, function (err, processed) {
           comSocket.emit('newdata', processed);
           if (processed && processed.timestamp) {
-            sessionEndTime = processed.timestamp;
+
             dao.saveSessionData(session.sessId, processed, function(err, res){
               if(err || !res){
                 console.log('Session data save failed', err);
@@ -107,10 +124,6 @@ var Worker = function (sessiondata, comSocket) {
       return callback(null, res);
     });
   };
-
-
-  
-
 
 };
 

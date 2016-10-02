@@ -49,9 +49,9 @@ exports.getLastSession = function(personid, callback){
   })
 }
 
-exports.saveSession = function (data, comSocket, callback) {
+exports.saveSession = function (data, comSocket, emitter, callback) {
   data.start = new Date().getTime();
-  worker = new sesshandler.Worker(data, comSocket);
+  worker = new sesshandler.Worker(data, comSocket, emitter);
   worker.startSession(function (err, res) {
     if (err) {
       return callback(err);
