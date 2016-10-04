@@ -32,6 +32,13 @@ io.on('connection', function (socket) {
   });
 });
 
+// Send heartbeat
+setInterval(function () {
+  if (comSocket) {
+    comSocket.emit('keepalive', new Date().getTime());
+  }
+}, 1000);
+
 
 server.route({
   method: 'GET',

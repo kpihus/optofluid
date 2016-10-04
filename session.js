@@ -24,7 +24,6 @@ var Worker = function (sessiondata, comSocket, emitter) {
 
   setInterval(function () {
     if (comSocket) {
-
       var t = (timeNow) ? new Date(timeNow): new Date();
       var seconds = (t.getSeconds() < 10) ? '0' + t.getSeconds() : t.getSeconds();
       var minutes = (t.getMinutes() < 10) ? '0' + t.getMinutes() : t.getMinutes();
