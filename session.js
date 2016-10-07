@@ -57,8 +57,13 @@ var Worker = function (sessiondata, comSocket, emitter) {
       callback(null, res);
     });
   };
+
+  self.isSessionEnd = function(){
+    return (timeNow - sessionStartTime) /1000 /60 > session.duration
+  }
   
-  self.stopSession = function(callback){
+  self.stopSession = function(){
+    console.log('SESSION STOP')
     started = false;
     session.status = 'stopped'
     session.end = timeNow
@@ -82,6 +87,9 @@ var Worker = function (sessiondata, comSocket, emitter) {
     // emitter.emit('next_data');
     comSocket.emit('status', 'started')
     dataHandler = setInterval(function(){
+      if(self.isSessionEnd()){
+        self.stopSession()
+      }
       if (started) {
         self.handleData();
       } else {
